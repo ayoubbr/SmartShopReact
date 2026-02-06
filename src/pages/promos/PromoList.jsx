@@ -4,11 +4,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faEdit, faTrash, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import PromoService from '../../services/promo.service';
+import { useToast } from '../../context/ToastContext';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const PromoList = () => {
     const [promos, setPromos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Toast & Modal
+    const { addToast } = useToast();
+    const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
 
     const fetchPromos = async () => {
         try {
@@ -18,6 +24,7 @@ const PromoList = () => {
             setLoading(false);
         } catch (err) {
             setError('Failed to load promos.');
+            addToast('Failed to load promos.', 'error');
             setLoading(false);
         }
     };
@@ -26,14 +33,20 @@ const PromoList = () => {
         fetchPromos();
     }, []);
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this promo code?')) {
-            try {
-                await PromoService.delete(id);
-                setPromos(promos.filter(p => p.id !== id));
-            } catch (err) {
-                alert('Failed to delete promo. ' + (err.response?.data?.message || err.message));
-            }
+    const handleDeleteClick = (id) => {
+        setDeleteModal({ isOpen: true, id });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteModal.id) return;
+        try {
+            await PromoService.delete(deleteModal.id);
+            addToast('Promo code deleted successfully.', 'success');
+            setPromos(promos.filter(p => p.id !== deleteModal.id));
+            setDeleteModal({ isOpen: false, id: null });
+        } catch (err) {
+            addToast('Failed to delete promo. ' + (err.response?.data?.message || err.message), 'error');
+            setDeleteModal({ isOpen: false, id: null });
         }
     };
 
@@ -50,6 +63,15 @@ const PromoList = () => {
             animate="visible"
             style={{ padding: '2rem 0' }}
         >
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                onConfirm={confirmDelete}
+                title="Delete Promo Code"
+                message="Are you sure you want to delete this promo code? This will prevent it from being applied to future orders."
+                isDangerous={true}
+            />
+
             <div className="navigation" style={{ marginBottom: '1rem' }}>
                 <Link to="/admin" className="btn" style={{ background: 'transparent', color: 'var(--color-primary)', paddingLeft: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
                     <FontAwesomeIcon icon={faArrowLeft} /> Back to Dashboard
@@ -101,7 +123,7 @@ const PromoList = () => {
                                             <Link to={`/promos/${promo.id}/edit`} className="btn" style={{ padding: '0.5rem', color: 'var(--color-info)', background: 'transparent', marginRight: '0.5rem' }}>
                                                 <FontAwesomeIcon icon={faEdit} />
                                             </Link>
-                                            <button onClick={() => handleDelete(promo.id)} className="btn" style={{ padding: '0.5rem', color: 'var(--color-danger)', background: 'transparent' }}>
+                                            <button onClick={() => handleDeleteClick(promo.id)} className="btn" style={{ padding: '0.5rem', color: 'var(--color-danger)', background: 'transparent' }}>
                                                 <FontAwesomeIcon icon={faTrash} />
                                             </button>
                                         </td>

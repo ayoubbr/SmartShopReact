@@ -14,15 +14,7 @@ const OrderService = {
     },
 
     getById: async (id) => {
-        // Note: The backend controller doesn't seem to have a specific GET /admin/{id} endpoint based on my previous read.
-        // It has /client/{clientId}. I might need to rely on the list or check if I missed an ID endpoint.
-        // Checking OrderController again... I missed checking if getById exists!
-        // If it doesn't exist, I might need to add it or implement it. 
-        // Let's assume for now I might need to add it to backend if missing.
-        // Wait, OrderRepository has findById.
-        // I will hold off on getById implementation until I verify backend endpoint.
-        // For now, implementing methods I know exist.
-        const response = await api.get(`/orders/admin/${id}`); // Optimistic, will verify.
+        const response = await api.get(`/orders/${id}`);
         return response.data;
     },
 
@@ -38,6 +30,11 @@ const OrderService = {
 
     confirm: async (orderId) => {
         const response = await api.put(`/orders/admin/confirm`, null, { params: { orderId } });
+        return response.data;
+    },
+
+    reject: async (orderId) => {
+        const response = await api.put(`/orders/admin/reject`, null, { params: { orderId } });
         return response.data;
     }
 };

@@ -10,6 +10,7 @@ import PromoList from './pages/promos/PromoList';
 import PromoForm from './pages/promos/PromoForm';
 import './index.css';
 import OrderCreate from './pages/orders/OrderCreate';
+import OrderDetails from './pages/orders/OrderDetails';
 import { ToastProvider } from './context/ToastContext';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
             <Route path="/clients/:id/edit" element={<ClientForm />} />
             <Route path="/orders" element={<OrderList />} />
             <Route path="/orders/new" element={<OrderCreate />} />
+            <Route path="/orders/:id" element={<OrderDetails />} />
             <Route path="/promos" element={<PromoList />} />
             <Route path="/promos/new" element={<PromoForm />} />
             <Route path="/promos/:id/edit" element={<PromoForm />} />

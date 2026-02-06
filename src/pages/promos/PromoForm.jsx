@@ -4,11 +4,13 @@ import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import PromoService from '../../services/promo.service';
+import { useToast } from '../../context/ToastContext';
 
 const PromoForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditMode = !!id;
+    const { addToast } = useToast();
 
     const [formData, setFormData] = useState({
         code: '',
@@ -31,6 +33,7 @@ const PromoForm = () => {
                     });
                 } catch (err) {
                     setError('Failed to fetch promo details.');
+                    addToast('Failed to fetch promo details.', 'error');
                 }
             };
             fetchPromo();
@@ -53,12 +56,16 @@ const PromoForm = () => {
         try {
             if (isEditMode) {
                 await PromoService.update(id, formData);
+                addToast('Promo code updated successfully.', 'success');
             } else {
                 await PromoService.create(formData);
+                addToast('Promo code created successfully.', 'success');
             }
             navigate('/promos');
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to save promo.');
+            const msg = err.response?.data?.message || 'Failed to save promo.';
+            setError(msg);
+            addToast(msg, 'error');
             setLoading(false);
         }
     };
@@ -94,7 +101,7 @@ const PromoForm = () => {
                         onChange={handleChange}
                         required
                         placeholder="e.g. SUMMER2024"
-                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
                     />
                 </div>
 
@@ -108,7 +115,7 @@ const PromoForm = () => {
                         min="0"
                         max="100"
                         required
-                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
                     />
                 </div>
 
@@ -120,7 +127,7 @@ const PromoForm = () => {
                         value={formData.expirationDate}
                         onChange={handleChange}
                         required
-                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
                     />
                 </div>
 

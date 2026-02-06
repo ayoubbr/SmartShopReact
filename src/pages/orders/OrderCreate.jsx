@@ -149,6 +149,9 @@ const OrderCreate = () => {
             if (tier === 'SILVER' && sub >= 500) discount += sub * 0.05;
             if (tier === 'GOLD' && sub >= 800) discount += sub * 0.10;
             if (tier === 'PLATINUM' && sub >= 1200) discount += sub * 0.15;
+
+            console.log("discount : ", discount);
+
         }
 
         // Promo discount
@@ -300,16 +303,24 @@ const OrderCreate = () => {
                     <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1.5rem' }}>
                         {orderItems.length === 0 && <div style={{ color: 'var(--color-text-muted)', textAlign: 'center' }}>Cart is empty</div>}
                         {orderItems.map(item => (
-                            <div key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <div key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', background: 'rgba(255,255,255,0.02)', padding: '0.8rem', borderRadius: '10px' }}>
                                 <div style={{ flex: 1 }}>
-                                    <div>{item.nom}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{item.prixUnitaire.toFixed(2)} DH x {item.quantite}</div>
+                                    <div style={{ fontSize: '0.95rem', fontWeight: '500' }}>{item.nom}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{item.prixUnitaire.toFixed(2)} DH/unit</div>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <button onClick={() => handleQuantityChange(item.productId, item.quantite - 1)} className="btn-small">-</button>
-                                    <span>{item.quantite}</span>
-                                    <button onClick={() => handleQuantityChange(item.productId, item.quantite + 1)} className="btn-small">+</button>
-                                    <button onClick={() => handleRemoveItem(item.productId)} style={{ color: 'var(--color-danger)', border: 'none', background: 'transparent', marginLeft: '0.5rem', cursor: 'pointer' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '20px', padding: '0.2rem' }}>
+                                        <button
+                                            onClick={() => handleQuantityChange(item.productId, item.quantite - 1)}
+                                            style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}
+                                        >-</button>
+                                        <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>{item.quantite}</span>
+                                        <button
+                                            onClick={() => handleQuantityChange(item.productId, item.quantite + 1)}
+                                            style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: 'var(--color-primary)', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}
+                                        >+</button>
+                                    </div>
+                                    <button onClick={() => handleRemoveItem(item.productId)} style={{ color: 'var(--color-danger)', border: 'none', background: 'transparent', cursor: 'pointer', padding: '0.5rem' }}>
                                         <FontAwesomeIcon icon={faTrash} />
                                     </button>
                                 </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faCheck, faBan, faArrowLeft, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faCheck, faBan, faArrowLeft, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import OrderService from '../../services/order.service';
 import Pagination from '../../components/common/Pagination';
@@ -66,6 +66,9 @@ const OrderList = () => {
             } else if (type === 'CANCEL') {
                 await OrderService.cancel(id);
                 addToast('Order canceled successfully.', 'success');
+            } else if (type === 'REJECT') {
+                await OrderService.reject(id);
+                addToast('Order rejected.', 'info');
             }
             fetchOrders();
         } catch (err) {
@@ -78,8 +81,8 @@ const OrderList = () => {
         switch (status) {
             case 'PENDING': return 'orange';
             case 'CONFIRMED': return '#06d6a0'; // green
-            case 'CANCELED': return '#e71d36'; // red
-            case 'REJECTED': return '#e71d36';
+            case 'CANCELED': return '#ffd166'; // yellow/orange for cancel
+            case 'REJECTED': return '#e71d36'; // deep red for reject
             default: return 'gray';
         }
     };
@@ -101,9 +104,9 @@ const OrderList = () => {
                 isOpen={confirmAction.isOpen}
                 onClose={() => setConfirmAction({ ...confirmAction, isOpen: false })}
                 onConfirm={executeAction}
-                title={confirmAction.type === 'CONFIRM' ? 'Confirm Order' : 'Cancel Order'}
-                message={`Are you sure you want to ${confirmAction.type === 'CONFIRM' ? 'confirm' : 'cancel'} this order?`}
-                isDangerous={confirmAction.type === 'CANCEL'}
+                title={confirmAction.type === 'CONFIRM' ? 'Confirm Order' : confirmAction.type === 'CANCEL' ? 'Cancel Order' : 'Reject Order'}
+                message={`Are you sure you want to ${confirmAction.type?.toLowerCase()} this order?`}
+                isDangerous={confirmAction.type === 'CANCEL' || confirmAction.type === 'REJECT'}
             />
 
             <div className="navigation" style={{ marginBottom: '1rem' }}>
@@ -201,8 +204,11 @@ const OrderList = () => {
                                                     <button onClick={() => handleActionClick('CONFIRM', order.id)} className="btn" title="Confirm" style={{ padding: '0.5rem', color: '#06d6a0', background: 'transparent', marginRight: '0.5rem' }}>
                                                         <FontAwesomeIcon icon={faCheck} />
                                                     </button>
-                                                    <button onClick={() => handleActionClick('CANCEL', order.id)} className="btn" title="Cancel" style={{ padding: '0.5rem', color: '#e71d36', background: 'transparent', marginRight: '0.5rem' }}>
+                                                    <button onClick={() => handleActionClick('CANCEL', order.id)} className="btn" title="Cancel" style={{ padding: '0.5rem', color: '#ffd166', background: 'transparent', marginRight: '0.5rem' }}>
                                                         <FontAwesomeIcon icon={faBan} />
+                                                    </button>
+                                                    <button onClick={() => handleActionClick('REJECT', order.id)} className="btn" title="Reject" style={{ padding: '0.5rem', color: '#e71d36', background: 'transparent', marginRight: '0.5rem' }}>
+                                                        <FontAwesomeIcon icon={faTimes} />
                                                     </button>
                                                 </>
                                             )}
