@@ -5,6 +5,8 @@ import { faPlus, faEdit, faTrash, faSearch, faArrowLeft } from '@fortawesome/fre
 import { Link } from 'react-router-dom';
 import ClientService from '../../services/client.service';
 import Pagination from '../../components/common/Pagination';
+import { useToast } from '../../context/ToastContext';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ClientList = () => {
     const [clients, setClients] = useState([]);
@@ -13,6 +15,10 @@ const ClientList = () => {
 
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+
+    // Toast & Modal
+    const { addToast } = useToast();
+    const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
 
     // Debounce search
     useEffect(() => {
@@ -41,6 +47,7 @@ const ClientList = () => {
             setLoading(false);
         } catch (err) {
             setError('Failed to load clients.');
+            addToast('Failed to load clients.', 'error');
             setLoading(false);
         }
     };
@@ -49,14 +56,18 @@ const ClientList = () => {
         fetchClients();
     }, [page, debouncedSearch]);
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this client?')) {
-            try {
-                await ClientService.delete(id);
-                fetchClients(); // Refresh
-            } catch (err) {
-                alert('Failed to delete client');
-            }
+    const handleDeleteClick = (id) => {
+        setDeleteModal({ isOpen: true, id });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteModal.id) return;
+        try {
+            await ClientService.delete(deleteModal.id);
+            addToast('Client deleted successfully.', 'success');
+            fetchClients(); // Refresh
+        } catch (err) {
+            addToast('Failed to delete client. ' + (err.response?.data?.message || err.message), 'error');
         }
     };
 
@@ -73,6 +84,15 @@ const ClientList = () => {
             animate="visible"
             style={{ padding: '2rem 0' }}
         >
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                onConfirm={confirmDelete}
+                title="Delete Client"
+                message="Are you sure you want to delete this client? This action cannot be undone."
+                isDangerous={true}
+            />
+
             <div className="navigation" style={{ marginBottom: '1rem' }}>
                 <Link to="/admin" className="btn" style={{ background: 'transparent', color: 'var(--color-primary)', paddingLeft: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
                     <FontAwesomeIcon icon={faArrowLeft} /> Back to Dashboard
@@ -148,7 +168,7 @@ const ClientList = () => {
                                             <Link to={`/clients/${client.id}/edit`} className="btn" style={{ padding: '0.5rem', color: 'var(--color-info)', marginRight: '0.5rem' }}>
                                                 <FontAwesomeIcon icon={faEdit} />
                                             </Link>
-                                            <button onClick={() => handleDelete(client.id)} className="btn" style={{ padding: '0.5rem', color: 'var(--color-danger)', background: 'transparent' }}>
+                                            <button onClick={() => handleDeleteClick(client.id)} className="btn" style={{ padding: '0.5rem', color: 'var(--color-danger)', background: 'transparent' }}>
                                                 <FontAwesomeIcon icon={faTrash} />
                                             </button>
                                         </td>

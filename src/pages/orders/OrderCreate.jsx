@@ -7,6 +7,7 @@ import ClientService from '../../services/client.service';
 import ProductService from '../../services/product.service';
 import OrderService from '../../services/order.service';
 import PromoService from '../../services/promo.service';
+import { useToast } from '../../context/ToastContext';
 
 const OrderCreate = () => {
     const navigate = useNavigate();
@@ -99,23 +100,30 @@ const OrderCreate = () => {
     };
 
 
+
+    // ... (in component)
+    const { addToast } = useToast();
+
+    // ... 
     const applyPromo = async () => {
         if (!promoCode) return;
-        // We need to fetch all promos and filter or have a verify endpoint. 
-        // Since we don't have verify endpoint, we fetch all active promos and find match.
-        // Ideally backend should have verify, but for now:
         try {
             const allPromos = await PromoService.getAll();
-            const match = allPromos.find(p => p.code === promoCode && p.active);
+            // Check expiry manually since backend DTO has date but logic might be frontend based for now
+            const match = allPromos.find(p => p.code === promoCode && new Date(p.expirationDate) > new Date());
+
             if (match) {
                 setAppliedPromo(match);
                 setPromoError(null);
+                addToast('Promo code applied!', 'success');
             } else {
                 setAppliedPromo(null);
-                setPromoError('Invalid or inactive promo code.');
+                setPromoError('Invalid or expired promo code.');
+                addToast('Invalid or expired promo code.', 'error');
             }
         } catch (err) {
             setPromoError('Failed to verify promo.');
+            addToast('Failed to verify promo.', 'error');
         }
     };
 
@@ -145,17 +153,13 @@ const OrderCreate = () => {
 
         // Promo discount
         if (appliedPromo) {
-            if (appliedPromo.strategy === 'PERCENTAGE') {
-                discount += (sub * appliedPromo.discountPercent) / 100;
-            } else {
-                discount += appliedPromo.discountAmount;
-            }
+            discount += (sub * appliedPromo.discountPercent) / 100;
         }
 
         setRemise(discount);
 
         const taxable = sub - discount;
-        const taxes = taxable * 0.20; // 20% TVA
+        const taxes = taxable * 0.20; // 20% TVA0
         setTva(taxes);
         setTotalTTC(taxable + taxes);
 

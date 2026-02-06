@@ -9,6 +9,7 @@ const ClientService = {
             search
         };
         const response = await api.get('/clients/admin', { params });
+        console.log(response.data);
         return response.data;
     },
 

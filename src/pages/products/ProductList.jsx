@@ -5,6 +5,8 @@ import { faPlus, faEdit, faTrash, faSearch, faArrowLeft } from '@fortawesome/fre
 import { Link } from 'react-router-dom';
 import ProductService from '../../services/product.service';
 import Pagination from '../../components/common/Pagination';
+import { useToast } from '../../context/ToastContext';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
@@ -20,6 +22,10 @@ const ProductList = () => {
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Toast & Modal
+    const { addToast } = useToast();
+    const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
+
     const fetchProducts = async () => {
         try {
             setLoading(true);
@@ -32,6 +38,7 @@ const ProductList = () => {
             setLoading(false);
         } catch (err) {
             setError('Failed to load products.');
+            addToast('Failed to load products.', 'error');
             setLoading(false);
         }
     };
@@ -40,14 +47,18 @@ const ProductList = () => {
         fetchProducts();
     }, [page, searchTerm]);
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
-            try {
-                await ProductService.delete(id);
-                fetchProducts(); // Refresh
-            } catch (err) {
-                alert('Failed to delete product');
-            }
+    const handleDeleteClick = (id) => {
+        setDeleteModal({ isOpen: true, id });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteModal.id) return;
+        try {
+            await ProductService.delete(deleteModal.id);
+            addToast('Product deleted successfully.', 'success');
+            fetchProducts(); // Refresh
+        } catch (err) {
+            addToast('Failed to delete product. ' + (err.response?.data?.message || err.message), 'error');
         }
     };
 
@@ -64,6 +75,15 @@ const ProductList = () => {
             animate="visible"
             style={{ padding: '2rem 0' }}
         >
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                onConfirm={confirmDelete}
+                title="Delete Product"
+                message="Are you sure you want to delete this product? This action cannot be undone."
+                isDangerous={true}
+            />
+
             <div className="navigation" style={{ marginBottom: '1rem' }}>
                 <Link to="/admin" className="btn" style={{ background: 'transparent', color: 'var(--color-primary)', paddingLeft: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
                     <FontAwesomeIcon icon={faArrowLeft} /> Back to Dashboard
@@ -146,7 +166,7 @@ const ProductList = () => {
                                             <Link to={`/products/${product.id}/edit`} className="btn" style={{ padding: '0.5rem', color: 'var(--color-info)', marginRight: '0.5rem' }}>
                                                 <FontAwesomeIcon icon={faEdit} />
                                             </Link>
-                                            <button onClick={() => handleDelete(product.id)} className="btn" style={{ padding: '0.5rem', color: 'var(--color-danger)', background: 'transparent' }}>
+                                            <button onClick={() => handleDeleteClick(product.id)} className="btn" style={{ padding: '0.5rem', color: 'var(--color-danger)', background: 'transparent' }}>
                                                 <FontAwesomeIcon icon={faTrash} />
                                             </button>
                                         </td>

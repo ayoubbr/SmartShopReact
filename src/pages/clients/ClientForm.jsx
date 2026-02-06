@@ -4,11 +4,13 @@ import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faArrowLeft, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import ClientService from '../../services/client.service';
+import { useToast } from '../../context/ToastContext';
 
 const ClientForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditMode = !!id;
+    const { addToast } = useToast();
 
     const [formData, setFormData] = useState({
         nom: '',
@@ -39,6 +41,7 @@ const ClientForm = () => {
             setLoading(false);
         } catch (err) {
             setError('Failed to load client details.');
+            addToast('Failed to load client details.', 'error');
             setLoading(false);
         }
     };
@@ -61,13 +64,17 @@ const ClientForm = () => {
                 // Remove password for update if blank or handle separately
                 const { password, ...updateData } = formData;
                 await ClientService.update(id, updateData);
+                addToast('Client updated successfully.', 'success');
             } else {
                 await ClientService.create(formData);
+                addToast('Client created successfully.', 'success');
             }
             navigate('/clients');
         } catch (err) {
             console.error(err);
+            const msg = err.response?.data?.message || 'Failed to save client.';
             setError('Failed to save client. Email or Username might already exist.');
+            addToast(msg, 'error');
             setLoading(false);
         }
     };

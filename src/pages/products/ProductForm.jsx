@@ -4,11 +4,13 @@ import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faArrowLeft, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import ProductService from '../../services/product.service';
+import { useToast } from '../../context/ToastContext';
 
 const ProductForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditMode = !!id;
+    const { addToast } = useToast();
 
     const [formData, setFormData] = useState({
         nom: '',
@@ -37,6 +39,7 @@ const ProductForm = () => {
             setLoading(false);
         } catch (err) {
             setError('Failed to load product details.');
+            addToast('Failed to load product details.', 'error');
             setLoading(false);
         }
     };
@@ -57,13 +60,17 @@ const ProductForm = () => {
         try {
             if (isEditMode) {
                 await ProductService.update(id, formData);
+                addToast('Product updated successfully.', 'success');
             } else {
                 await ProductService.create(formData);
+                addToast('Product created successfully.', 'success');
             }
             navigate('/products');
         } catch (err) {
             console.error(err);
-            setError('Failed to save product. Please check the inputs.');
+            const msg = err.response?.data?.message || 'Failed to save product.';
+            setError(msg);
+            addToast(msg, 'error');
             setLoading(false);
         }
     };

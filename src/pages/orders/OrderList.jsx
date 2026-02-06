@@ -5,6 +5,8 @@ import { faEye, faCheck, faBan, faArrowLeft, faPlus } from '@fortawesome/free-so
 import { Link } from 'react-router-dom';
 import OrderService from '../../services/order.service';
 import Pagination from '../../components/common/Pagination';
+import { useToast } from '../../context/ToastContext';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const OrderList = () => {
     const [orders, setOrders] = useState([]);
@@ -21,6 +23,10 @@ const OrderList = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [clientFilter, setClientFilter] = useState('');
 
+    // Toast and Modal State
+    const { addToast } = useToast();
+    const [confirmAction, setConfirmAction] = useState({ isOpen: false, type: null, id: null });
+
     // Debounce Logic for search
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -28,7 +34,6 @@ const OrderList = () => {
         }, 500);
         return () => clearTimeout(timer);
     }, [page, statusFilter, clientFilter]);
-
 
     const fetchOrders = async () => {
         try {
@@ -46,28 +51,26 @@ const OrderList = () => {
         }
     };
 
-    // Initial fetch handled by debounce effect above
-
-
-    const handleConfirm = async (id) => {
-        if (window.confirm('Are you sure you want to confirm this order?')) {
-            try {
-                await OrderService.confirm(id);
-                fetchOrders();
-            } catch (err) {
-                alert('Failed to confirm order. ' + (err.response?.data?.message || err.message));
-            }
-        }
+    const handleActionClick = (type, id) => {
+        setConfirmAction({ isOpen: true, type, id });
     };
 
-    const handleCancel = async (id) => {
-        if (window.confirm('Are you sure you want to cancel this order?')) {
-            try {
+    const executeAction = async () => {
+        const { type, id } = confirmAction;
+        if (!id) return;
+
+        try {
+            if (type === 'CONFIRM') {
+                await OrderService.confirm(id);
+                addToast('Order confirmed successfully.', 'success');
+            } else if (type === 'CANCEL') {
                 await OrderService.cancel(id);
-                fetchOrders();
-            } catch (err) {
-                alert('Failed to cancel order. ' + (err.response?.data?.message || err.message));
+                addToast('Order canceled successfully.', 'success');
             }
+            fetchOrders();
+        } catch (err) {
+            console.error(err);
+            addToast('Failed to update order. ' + (err.response?.data?.message || err.message), 'error');
         }
     };
 
@@ -94,6 +97,15 @@ const OrderList = () => {
             animate="visible"
             style={{ padding: '2rem 0' }}
         >
+            <ConfirmModal
+                isOpen={confirmAction.isOpen}
+                onClose={() => setConfirmAction({ ...confirmAction, isOpen: false })}
+                onConfirm={executeAction}
+                title={confirmAction.type === 'CONFIRM' ? 'Confirm Order' : 'Cancel Order'}
+                message={`Are you sure you want to ${confirmAction.type === 'CONFIRM' ? 'confirm' : 'cancel'} this order?`}
+                isDangerous={confirmAction.type === 'CANCEL'}
+            />
+
             <div className="navigation" style={{ marginBottom: '1rem' }}>
                 <Link to="/admin" className="btn" style={{ background: 'transparent', color: 'var(--color-primary)', paddingLeft: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
                     <FontAwesomeIcon icon={faArrowLeft} /> Back to Dashboard
@@ -123,13 +135,25 @@ const OrderList = () => {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                            style={{
+                                width: '100%',
+                                padding: '0.8rem',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: 'white',
+                                appearance: 'none',
+                                backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right .7em top 50%',
+                                backgroundSize: '.65em auto'
+                            }}
                         >
-                            <option value="">All Statuses</option>
-                            <option value="PENDING">Pending</option>
-                            <option value="CONFIRMED">Confirmed</option>
-                            <option value="CANCELED">Canceled</option>
-                            <option value="REJECTED">Rejected</option>
+                            <option value="" style={{ color: 'black' }}>All Statuses</option>
+                            <option value="PENDING" style={{ color: 'black' }}>Pending</option>
+                            <option value="CONFIRMED" style={{ color: 'black' }}>Confirmed</option>
+                            <option value="CANCELED" style={{ color: 'black' }}>Canceled</option>
+                            <option value="REJECTED" style={{ color: 'black' }}>Rejected</option>
                         </select>
                     </div>
                 </div>
@@ -174,18 +198,17 @@ const OrderList = () => {
                                         <td style={{ padding: '1rem', textAlign: 'right' }}>
                                             {order.statut === 'PENDING' && (
                                                 <>
-                                                    <button onClick={() => handleConfirm(order.id)} className="btn" title="Confirm" style={{ padding: '0.5rem', color: '#06d6a0', background: 'transparent', marginRight: '0.5rem' }}>
+                                                    <button onClick={() => handleActionClick('CONFIRM', order.id)} className="btn" title="Confirm" style={{ padding: '0.5rem', color: '#06d6a0', background: 'transparent', marginRight: '0.5rem' }}>
                                                         <FontAwesomeIcon icon={faCheck} />
                                                     </button>
-                                                    <button onClick={() => handleCancel(order.id)} className="btn" title="Cancel" style={{ padding: '0.5rem', color: '#e71d36', background: 'transparent', marginRight: '0.5rem' }}>
+                                                    <button onClick={() => handleActionClick('CANCEL', order.id)} className="btn" title="Cancel" style={{ padding: '0.5rem', color: '#e71d36', background: 'transparent', marginRight: '0.5rem' }}>
                                                         <FontAwesomeIcon icon={faBan} />
                                                     </button>
                                                 </>
                                             )}
-                                            {/* Placeholder for Details View */}
-                                            <button className="btn" style={{ padding: '0.5rem', color: 'var(--color-info)', background: 'transparent', opacity: 0.5, cursor: 'not-allowed' }} title="Details (Coming Soon)">
+                                            <Link to={`/orders/${order.id}`} className="btn" style={{ padding: '0.5rem', color: 'var(--color-info)', background: 'transparent' }} title="Details">
                                                 <FontAwesomeIcon icon={faEye} />
-                                            </button>
+                                            </Link>
                                         </td>
                                     </tr>
                                 )) : (
