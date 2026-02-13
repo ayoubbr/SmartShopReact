@@ -2,7 +2,6 @@ import api from './api';
 
 const ClientService = {
     getAll: async (page = 0, size = 10, search = '') => {
-        // Backend now accepts Pageable params: page, size, sort
         const params = {
             page,
             size,

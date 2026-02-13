@@ -53,7 +53,7 @@ const Toast = ({ message, type, onClose }) => {
     const icons = {
         success: faCheckCircle,
         error: faExclamationCircle,
-        info: faInfoCircle, // Using info circle for warning too or customize
+        info: faInfoCircle, 
         warning: faExclamationCircle
     };
 
@@ -64,7 +64,7 @@ const Toast = ({ message, type, onClose }) => {
             exit={{ opacity: 0, x: 20, scale: 0.9 }}
             layout
             style={{
-                background: 'var(--color-bg-card)', // Dark card background
+                background: 'var(--color-bg-card)', 
                 color: 'white',
                 padding: '1rem 1.5rem',
                 borderRadius: '10px',

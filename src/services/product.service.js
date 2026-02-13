@@ -2,13 +2,11 @@ import api from './api';
 
 const ProductService = {
     getAll: async (page = 0, size = 10, search = '') => {
-        // Depending on backend implementation, filtering might be query params
-        // Based on Controller: getAll(ProductFilterDTO filter, Pageable pageable)
-        // We need to check how FilterDTO is mapped. Usually object fields as params.
+
         const params = {
             page,
             size,
-            ...(search && { nom: search }) // Assuming 'nom' is the search field as per FilterDTO check needed
+            ...(search && { nom: search })
         };
         const response = await api.get('/products', { params });
         return response.data;

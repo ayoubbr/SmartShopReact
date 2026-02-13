@@ -19,15 +19,12 @@ const OrderList = () => {
     const [isFirst, setIsFirst] = useState(true);
     const [isLast, setIsLast] = useState(false);
 
-    // Filter State
     const [statusFilter, setStatusFilter] = useState('');
     const [clientFilter, setClientFilter] = useState('');
 
-    // Toast and Modal State
     const { addToast } = useToast();
     const [confirmAction, setConfirmAction] = useState({ isOpen: false, type: null, id: null });
 
-    // Debounce Logic for search
     useEffect(() => {
         const timer = setTimeout(() => {
             fetchOrders();

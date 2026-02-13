@@ -74,7 +74,6 @@ const OrderDetails = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
 
-                {/* Left Side: Order Info & Items */}
                 <div className="main-info">
                     <div style={{ background: 'var(--color-bg-card)', padding: '2rem', borderRadius: '15px', marginBottom: '2rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -137,7 +136,6 @@ const OrderDetails = () => {
                     </div>
                 </div>
 
-                {/* Right Side: Totals & Payments */}
                 <div className="side-panel">
                     <div style={{ background: 'var(--color-bg-card)', padding: '2rem', borderRadius: '15px', position: 'sticky', top: '2rem' }}>
                         <h3 style={{ marginBottom: '1.5rem' }}>Summary</h3>

@@ -19,7 +19,7 @@ const OrderCreate = () => {
     const [clientSearch, setClientSearch] = useState('');
     const [products, setProducts] = useState([]);
     const [productSearch, setProductSearch] = useState('');
-    const [promos, setPromos] = useState([]); // Or just verify code on input
+    const [promos, setPromos] = useState([]); 
 
     // Selection States
     const [selectedClient, setSelectedClient] = useState(null);
@@ -41,7 +41,7 @@ const OrderCreate = () => {
         const fetchClients = async () => {
             if (clientSearch.length < 2) return;
             try {
-                const data = await ClientService.getAll(0, 5, clientSearch); // Low size for dropdown
+                const data = await ClientService.getAll(0, 5, clientSearch);
                 setClients(data.content);
             } catch (err) {
                 console.error("Failed to search clients");
@@ -54,7 +54,6 @@ const OrderCreate = () => {
     // Fetch Products for Search
     useEffect(() => {
         const fetchProducts = async () => {
-            // Assuming ProductService.getAll accepts search which maps to 'nom'
             try {
                 const data = await ProductService.getAll(0, 10, productSearch);
                 setProducts(data.content);
@@ -69,7 +68,6 @@ const OrderCreate = () => {
     const handleAddProduct = (product) => {
         const existing = orderItems.find(item => item.productId === product.id);
         if (existing) {
-            // Increment quantity
             handleQuantityChange(product.id, existing.quantite + 1);
         } else setOrderItems([...orderItems, {
             productId: product.id,
@@ -101,15 +99,12 @@ const OrderCreate = () => {
 
 
 
-    // ... (in component)
     const { addToast } = useToast();
 
-    // ... 
     const applyPromo = async () => {
         if (!promoCode) return;
         try {
             const allPromos = await PromoService.getAll();
-            // Check expiry manually since backend DTO has date but logic might be frontend based for now
             const match = allPromos.find(p => p.code === promoCode && new Date(p.expirationDate) > new Date());
 
             if (match) {
@@ -135,16 +130,11 @@ const OrderCreate = () => {
         });
         setSousTotal(sub);
 
-        // Calculate Discount (Mock logic similar to backend to show preview)
-        // Real calculation happens on backend, but good to show estimate.
+      
         let discount = 0;
 
-        // Tier discount logic (simplified for UI preview)
         if (selectedClient) {
-            // Need client tier info. ClientService.getAll returns client details including tier.
-            // Assuming selectedClient has customerTier
-            // Logic from backend: SILVER > 500 (5%), GOLD > 800 (10%), PLATINUM > 1200 (15%)
-            // Note: Tier names might differ, checking backend logic...
+            // SILVER > 500 (5%), GOLD > 800 (10%), PLATINUM > 1200 (15%)
             const tier = selectedClient.customerTier;
             if (tier === 'SILVER' && sub >= 500) discount += sub * 0.05;
             if (tier === 'GOLD' && sub >= 800) discount += sub * 0.10;
@@ -162,7 +152,7 @@ const OrderCreate = () => {
         setRemise(discount);
 
         const taxable = sub - discount;
-        const taxes = taxable * 0.20; // 20% TVA0
+        const taxes = taxable * 0.20; // 20% TVA
         setTva(taxes);
         setTotalTTC(taxable + taxes);
 
@@ -208,7 +198,7 @@ const OrderCreate = () => {
             style={{ padding: '2rem 0', maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem' }}
         >
 
-            {/* Left Column: Selection */}
+   
             <div className="selection-panel">
                 <Link to="/orders" className="btn" style={{ background: 'transparent', color: 'var(--color-text-muted)', paddingLeft: 0, marginBottom: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
                     <FontAwesomeIcon icon={faArrowLeft} /> Back to Orders
@@ -217,7 +207,6 @@ const OrderCreate = () => {
 
                 {error && <div style={{ color: 'var(--color-danger)', marginBottom: '1rem' }}>{error}</div>}
 
-                {/* Client Search */}
                 <div style={{ background: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: '15px', marginBottom: '1.5rem' }}>
                     <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>1. Select Client</h3>
                     {selectedClient ? (
